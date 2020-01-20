@@ -1,25 +1,149 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Assignment 1"
+output: html_document
 ---
 
 
-## Loading and preprocessing the data
+##Loading and preprocessing the data
 
+I used the below packages for my code in this report
+```{r,results='hide',message =FALSE}
+library(plyr)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(reshape2)
+```
+I used the below code to load the data and remove any NA values
+```{r}
+#Load the data, remove NAs
+data_1 <- read.csv("C:\\Users\\Daniel\\Documents\\R\\data\\activity.csv")
+data_NA <- is.na(data_1$step)
+data_2 <- data_1[!data_NA,]
+```
 
+##What is the mean total number of steps taken per day?
 
-## What is mean total number of steps taken per day?
+First, I consolidated the data using tapply, (I had to remove the NA's once again):
+```{r}
+tsum <- tapply(data_2[,1],data_2$date,FUN = sum)
+tsum_NA <- is.na(tsum)
+tsum <- tsum[!tsum_NA]
+tsum
+```
+'tsum' is a vector containg the values of the total number of steps taken each day. Then I used 'tsum' to calculate the mean and median:
+```{r}
+mean_steps <- round(mean(tsum),2)
+median_steps <- round(median(tsum),2)
 
+```
+The median steps per day is `r median_steps` and the mean number of steps is `r mean_steps`. The code below plots a histogram of the total number of steps taken each day:
+```{r}
+hist(tsum,breaks = 6, xlab = "Steps",
+     main = "Histogram of Steps Taken")
+```
 
+##What is the average daily activity pattern?
 
-## What is the average daily activity pattern?
+To calculate I used tapply to consolidate the data into average steps taken for each interval.
+```{r}
+#create new data frame
+data_3 <- data_2
 
+#find average of each interval across all days
+taverage <- tapply(data_3[,1],data_3$interval,
+                   FUN = mean)
+```
+Using the above data, I used ggplot to make a time series plot for each interval averaged across all days.
+```{r}
+#create the data frame for ggplot
+x <- as.numeric(as.character(names(taverage)))
+y <- taverage
+ggdata_1 <- data.frame(x,y)
+#Plot the data
+g <- ggplot(data = ggdata_1, aes(x = ggdata_1$x,
+                                 y = ggdata_1$y,
+                                 group =1))
+g + geom_line()+ggtitle("Average Steps by Interval")+
+        labs(y = "Average Steps", x ="Interval")
+```
 
+Lastly, I found the interval at which the max average steps occurred:
+```{r}
+max_interval = names(which.max(taverage))
+```
+The interval with the highest average was `r max_interval`.
 
-## Imputing missing values
+##Imputing missing values
+Below is the code to calculate the number of missing values:
+```{r}
+#Calculate number of missing values and create new data frame
+NAcount <- sum(is.na(data_1[,1]))
+data_4 <- data_1
+```
+There are `r NAcount` missing values
 
+My strategy for imputing missing values was to use the average steps for each interval.
+So, created a data frame that mapped each interval to its average steps:
+```{r}
+#Create data frame matching intervals to their averages
+avgDF <- data.frame(names(taverage),taverage)
+names(avgDF) <- c("interval","Interval Average")
 
+```
+Then I merged the above data frame with the original data and replaced the missing values with the interval averages
+```{r}
+#merge original data with interval averages
+mergetest <- merge(data_4,avgDF, by.x = "interval",by.y = "interval")
+#Map interval averages to steps with NA values
+mergetest[is.na(mergetest$steps),"steps"] <- mergetest[is.na(mergetest$steps),"Interval Average"]
+```
+Then I used tapply to get the average steps for each day, and plotted the frequency of steps taken with a histogram
+```{r}
+#sum the total steps (with imputed values) for each day
+Impsum <- tapply(mergetest[,2],mergetest$date, FUN = sum)
+#plot histogram of Impsum
+hist(Impsum,breaks = 6, xlab = "Steps",
+     main = "Histogram of Steps Taken (Imputed)")
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+Lastly, I calculated the new mean and median using the imputed data:
+``` {r}
+#calculate mean and median of imputed data
+median_steps_imp <- round(median(Impsum),2)
+mean_steps_imp <- round(mean(Impsum),2)
+```
+- Original median: `r median_steps`
+- Imputed median: `r median_steps_imp`
+- Original mean: `r mean_steps`
+- Imputed meanK: `r mean_steps_imp`
+
+##Are there differences in activity between weekdays and weekends?
+I used the weekdays function to add a column to the dataframe denoting dates that were weekends or weekdays
+``` {r}
+#change the date from factor to date
+mergetest$date <- as.Date(mergetest$date,format = "%Y-%m-%d")
+#Add a weekday column
+mergetest$weekday <- weekdays(mergetest$date)
+#Find indexes of Saturday and Sunday and replace them with "Weekend"
+wIndex <- mergetest$weekday == "Sunday" |
+        mergetest$weekday == "Saturday"
+mergetest$weekday[wIndex] <- "Weekend"
+#Find indexes of non Weekends and replace with "Weekday"
+wIndex2 <- mergetest$weekday != "Weekend"
+mergetest$weekday[wIndex2] <- "Weekday"
+```
+Then I extracted the relevant columns, aggregated by interval and weekday, and finally plotted the results using ggplot
+```{r}
+#Select relevant columns
+weekData <- mergetest[,c(1,2,5)]
+#Aggregate by interval and weekday
+weekData2 <- aggregate(.~interval+weekday,weekData, mean)
+#Plot using ggplot, and separate by weekday factor
+g2 <- ggplot(data = weekData2, aes(x = weekData2$interval,
+                                   y = weekData2$steps, 
+                                   group =1))
+g2 + geom_line()+facet_grid(rows=vars(weekday))+
+        ggtitle("Average Steps by Interval")+
+        labs(y = "Average Steps", x ="Interval")
+```
