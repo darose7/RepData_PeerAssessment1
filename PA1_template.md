@@ -57,7 +57,7 @@ steps taken each day:
     hist(tsum,breaks = 6, xlab = "Steps",
          main = "Histogram of Steps Taken")
 
-![](PA1_template_files/figure-markdown_strict/unnamed-chunk-5-1.png)
+![](PA1_template_files/figure-markdown_strict/Histogram%20-%20NAs%20removed-1.png)
 
 What is the average daily activity pattern?
 -------------------------------------------
@@ -86,7 +86,7 @@ interval averaged across all days.
     g + geom_line()+ggtitle("Average Steps by Interval")+
             labs(y = "Average Steps", x ="Interval")
 
-![](PA1_template_files/figure-markdown_strict/unnamed-chunk-7-1.png)
+![](PA1_template_files/figure-markdown_strict/Average%20Steps%20taken%20per%20Interval-1.png)
 
 Lastly, I found the interval at which the max average steps occurred:
 
@@ -130,7 +130,7 @@ the frequency of steps taken with a histogram
     hist(Impsum,breaks = 6, xlab = "Steps",
          main = "Histogram of Steps Taken (Imputed)")
 
-![](PA1_template_files/figure-markdown_strict/unnamed-chunk-12-1.png)
+![](PA1_template_files/figure-markdown_strict/Histogram%20with%20Imputed%20Data-1.png)
 
 Lastly, I calculated the new mean and median using the imputed data:
 
@@ -176,4 +176,4 @@ weekday, and finally plotted the results using ggplot
             ggtitle("Average Steps by Interval")+
             labs(y = "Average Steps", x ="Interval")
 
-![](PA1_template_files/figure-markdown_strict/unnamed-chunk-15-1.png)
+![](PA1_template_files/figure-markdown_strict/Average%20Steps%20taken%20per%20Interval%20by%20Weekend/Weekday-1.png)
