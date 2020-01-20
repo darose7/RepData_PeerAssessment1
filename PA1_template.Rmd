@@ -1,8 +1,8 @@
 ---
 title: "Reproducible Research Assignment 1"
 output: html_document
+author: Daniel R.
 ---
-
 
 ##Loading and preprocessing the data
 
@@ -38,7 +38,7 @@ median_steps <- round(median(tsum),2)
 
 ```
 The median steps per day is `r median_steps` and the mean number of steps is `r mean_steps`. The code below plots a histogram of the total number of steps taken each day:
-```{r}
+```{r Histogram - NAs removed}
 hist(tsum,breaks = 6, xlab = "Steps",
      main = "Histogram of Steps Taken")
 ```
@@ -55,7 +55,7 @@ taverage <- tapply(data_3[,1],data_3$interval,
                    FUN = mean)
 ```
 Using the above data, I used ggplot to make a time series plot for each interval averaged across all days.
-```{r}
+```{r Average Steps taken per Interval}
 #create the data frame for ggplot
 x <- as.numeric(as.character(names(taverage)))
 y <- taverage
@@ -99,7 +99,7 @@ mergetest <- merge(data_4,avgDF, by.x = "interval",by.y = "interval")
 mergetest[is.na(mergetest$steps),"steps"] <- mergetest[is.na(mergetest$steps),"Interval Average"]
 ```
 Then I used tapply to get the average steps for each day, and plotted the frequency of steps taken with a histogram
-```{r}
+```{r Histogram with Imputed Data}
 #sum the total steps (with imputed values) for each day
 Impsum <- tapply(mergetest[,2],mergetest$date, FUN = sum)
 #plot histogram of Impsum
@@ -134,7 +134,7 @@ wIndex2 <- mergetest$weekday != "Weekend"
 mergetest$weekday[wIndex2] <- "Weekday"
 ```
 Then I extracted the relevant columns, aggregated by interval and weekday, and finally plotted the results using ggplot
-```{r}
+```{r Average Steps taken per Interval by Weekend/Weekday}
 #Select relevant columns
 weekData <- mergetest[,c(1,2,5)]
 #Aggregate by interval and weekday
